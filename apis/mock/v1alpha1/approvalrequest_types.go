@@ -25,14 +25,53 @@ import (
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 )
 
+// ApprovalStatus is a string enum for mock approval supported approval status values
+type ApprovalStatus string
+
+type approvalStatusValuesType struct {
+	Approved ApprovalStatus
+	Rejected ApprovalStatus
+	Pending  ApprovalStatus
+}
+
+// ApprovalStatusValues holds the possible values for mock approval status
+var ApprovalStatusValues = approvalStatusValuesType{
+	Approved: "Approved",
+	Rejected: "Rejected",
+	Pending:  "Pending",
+}
+
+// ApprovalDecision is a string enum for mock approval supported approval decision values
+type ApprovalDecision string
+
+type approvalDecisionValuesType struct {
+	Approve ApprovalDecision
+	Reject  ApprovalDecision
+}
+
+// ApprovalDecisionValues holds the possible values for mock approval decisions
+var ApprovalDecisionValues = approvalDecisionValuesType{
+	Approve: "approve",
+	Reject:  "reject",
+}
+
+// ApprovalDecisionRecord records one single approval decision on a approval request
+type ApprovalDecisionRecord struct {
+	Approver string           `json:"approver"`
+	Decision ApprovalDecision `json:"decision"`
+}
+
 // ApprovalRequestParameters are the configurable fields of a ApprovalRequest.
 type ApprovalRequestParameters struct {
-	ConfigurableField string `json:"configurableField"`
+	Requester string `json:"requester"`
+	Subject   string `json:"subject"`
 }
 
 // ApprovalRequestObservation are the observable fields of a ApprovalRequest.
 type ApprovalRequestObservation struct {
-	ObservableField string `json:"observableField,omitempty"`
+	ID        int                      `json:"id,omitempty"`
+	Status    ApprovalStatus           `json:"status,omitempty"`
+	Decisions []ApprovalDecisionRecord `json:"decisions,omitempty"`
 }
 
 // A ApprovalRequestSpec defines the desired state of a ApprovalRequest.

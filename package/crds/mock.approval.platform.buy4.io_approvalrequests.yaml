@@ -66,10 +66,13 @@ spec:
                 description: ApprovalRequestParameters are the configurable fields
                   of a ApprovalRequest.
                 properties:
-                  configurableField:
+                  requester:
+                    type: string
+                  subject:
                     type: string
                 required:
-                - configurableField
+                - requester
+                - subject
                 type: object
               providerConfigRef:
                 default:
@@ -123,7 +126,27 @@ spec:
                 description: ApprovalRequestObservation are the observable fields
                   of a ApprovalRequest.
                 properties:
-                  observableField:
+                  decisions:
+                    items:
+                      description: ApprovalDecisionRecord records one single approval
+                        decision on a approval request
+                      properties:
+                        approver:
+                          type: string
+                        decision:
+                          description: ApprovalDecision is a string enum for mock
+                            approval supported approval decision values
+                          type: string
+                      required:
+                      - approver
+                      - decision
+                      type: object
+                    type: array
+                  id:
+                    type: integer
+                  status:
+                    description: ApprovalStatus is a string enum for mock approval
+                      supported approval status values
                     type: string
                 type: object
               conditions:
