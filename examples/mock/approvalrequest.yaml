@@ -1,5 +1,5 @@
-apiVersion: sample.template.crossplane.io/v1alpha1
-kind: MyType
+apiVersion: approval.approval.platform.buy4.io/v1alpha1
+kind: ApprovalRequest
 metadata:
   name: example
 spec:

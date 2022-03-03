@@ -6,14 +6,14 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.6.2
   creationTimestamp: null
-  name: providerconfigusages.template.crossplane.io
+  name: providerconfigusages.approval.platform.buy4.io
 spec:
-  group: template.crossplane.io
+  group: approval.platform.buy4.io
   names:
     categories:
     - crossplane
     - provider
-    - template
+    - approval
     kind: ProviderConfigUsage
     listKind: ProviderConfigUsageList
     plural: providerconfigusages
