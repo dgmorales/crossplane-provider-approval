@@ -27,6 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 
+	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
 	"github.com/crossplane/crossplane-runtime/pkg/event"
 	"github.com/crossplane/crossplane-runtime/pkg/logging"
 	"github.com/crossplane/crossplane-runtime/pkg/ratelimiter"
@@ -35,6 +36,7 @@ import (
 
 	"github.com/crossplane/provider-approval/apis/mock/v1alpha1"
 	apisv1alpha1 "github.com/crossplane/provider-approval/apis/v1alpha1"
+	mockclient "github.com/crossplane/provider-approval/internal/client"
 )
 
 const (
@@ -46,12 +48,12 @@ const (
 	errNewClient = "cannot create new Service"
 )
 
-// A NoOpService does nothing.
-type NoOpService struct{}
-
-var (
-	newNoOpService = func(_ []byte) (interface{}, error) { return &NoOpService{}, nil }
-)
+func newMockClient(creds []byte) (*mockclient.Client, error) {
+	client := mockclient.Client{
+		Hostname: "http://localhost:5000",
+	}
+	return &client, nil
+}
 
 // Setup adds a controller that reconciles ApprovalRequest managed resources.
 func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
@@ -66,7 +68,7 @@ func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
 		managed.WithExternalConnecter(&connector{
 			kube:         mgr.GetClient(),
 			usage:        resource.NewProviderConfigUsageTracker(mgr.GetClient(), &apisv1alpha1.ProviderConfigUsage{}),
-			newServiceFn: newNoOpService}),
+			newServiceFn: newMockClient}),
 		managed.WithLogger(l.WithValues("controller", name)),
 		managed.WithRecorder(event.NewAPIRecorder(mgr.GetEventRecorderFor(name))))
 
@@ -82,7 +84,7 @@ func Setup(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
 type connector struct {
 	kube         client.Client
 	usage        resource.Tracker
-	newServiceFn func(creds []byte) (interface{}, error)
+	newServiceFn func(creds []byte) (*mockclient.Client, error)
 }
 
 // Connect typically produces an ExternalClient by:
@@ -124,7 +126,8 @@ func (c *connector) Connect(ctx context.Context, mg resource.Managed) (managed.E
 type external struct {
 	// A 'client' used to connect to the external resource API. In practice this
 	// would be something like an AWS SDK client.
-	service interface{}
+	service *mockclient.Client
+	kube    client.Client
 }
 
 func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.ExternalObservation, error) {
@@ -135,6 +138,20 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 
 	// These fmt statements should be removed in the real implementation.
 	fmt.Printf("Observing: %+v", cr)
+
+	if cr.Status.AtProvider.ID == nil {
+		return managed.ExternalObservation{ResourceExists: false}, nil
+	}
+
+	ar, err := c.service.Get(*cr.Status.AtProvider.ID)
+	if err != nil {
+		return managed.ExternalObservation{ResourceExists: true}, errors.Wrapf(err, "error getting approval request id %d details", *&cr.Status.AtProvider.ID)
+	}
+
+	if ar.Status == mockclient.ApprovalStatusValues.Approved {
+		cr.SetConditions(xpv1.Available())
+	}
+
 
 	return managed.ExternalObservation{
 		// Return false when the external resource does not exist. This lets

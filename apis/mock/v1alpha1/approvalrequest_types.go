@@ -69,7 +69,7 @@ type ApprovalRequestParameters struct {
 
 // ApprovalRequestObservation are the observable fields of a ApprovalRequest.
 type ApprovalRequestObservation struct {
-	ID        int                      `json:"id,omitempty"`
+	ID        *int                      `json:"id,omitempty"`
 	Status    ApprovalStatus           `json:"status,omitempty"`
 	Decisions []ApprovalDecisionRecord `json:"decisions,omitempty"`
 }

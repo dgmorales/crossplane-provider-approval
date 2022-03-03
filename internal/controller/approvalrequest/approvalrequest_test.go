@@ -25,6 +25,7 @@ import (
 	"github.com/crossplane/crossplane-runtime/pkg/reconciler/managed"
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
 	"github.com/crossplane/crossplane-runtime/pkg/test"
+	mockclient "github.com/crossplane/provider-approval/internal/client"
 )
 
 // Unlike many Kubernetes projects Crossplane does not use third party testing
@@ -37,7 +38,7 @@ import (
 
 func TestObserve(t *testing.T) {
 	type fields struct {
-		service interface{}
+		service *mockclient.Client
 	}
 
 	type args struct {
