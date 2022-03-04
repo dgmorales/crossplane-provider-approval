@@ -27,7 +27,7 @@ import (
 
 // Package type metadata.
 const (
-	Group   = "approval.approval.platform.buy4.io"
+	Group   = "mock.approval.platform.buy4.io"
 	Version = "v1alpha1"
 )
 

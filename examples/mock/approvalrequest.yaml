@@ -1,9 +1,8 @@
-apiVersion: approval.approval.platform.buy4.io/v1alpha1
+apiVersion: mock.approval.platform.buy4.io/v1alpha1
 kind: ApprovalRequest
 metadata:
-  name: example
+  name: approval-request-example
 spec:
   forProvider:
-    configurableField: test
-  providerConfigRef:
-    name: example
+    requester: someone@someemail.com
+    subject: postgresqlservice.database.buy4.io/default/pgsql-approval-stnetest

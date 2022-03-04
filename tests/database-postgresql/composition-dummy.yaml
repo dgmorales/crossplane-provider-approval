@@ -1,0 +1,88 @@
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: stone-postgres-paas-dummy
+  labels:
+    crossplane.io/xrd: xpostgresqlservices.database.buy4.io
+    provider: dummy
+    environment: nonprod
+spec:
+  writeConnectionSecretsToNamespace: crossplane-system
+  compositeTypeRef:
+    apiVersion: database.buy4.io/v1alpha1
+    kind: XPostgreSQLService
+  resources:
+    - name: pgsqlservice-approval
+      base:
+        apiVersion: mock.approval.platform.buy4.io/v1alpha1
+        kind: ApprovalRequest
+        metadata:
+          name: approval-request-example
+        spec:
+          forProvider:
+            requester: someone@someemail.com
+            subject: postgresqlservice.database.buy4.io/default/pgsql-approval-stnetest
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.labels[crossplane.io/claim-name]
+          toFieldPath: "metadata.name"
+          transforms:
+            - type: string
+              string:
+                fmt: "approval-request-for-%s"
+
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.labels[crossplane.io/claim-namespace]
+          toFieldPath: "metadata.namespace"
+
+    - name: dummy-resource-cfgmap1
+      base:
+        apiVersion: kubernetes.crossplane.io/v1alpha1
+        kind: Object
+        spec:
+          forProvider:
+            manifest:
+              apiVersion: v1
+              kind: ConfigMap
+              metadata:
+                namespace: patch-me
+          providerConfigRef:
+            name: kubernetes-provider-config
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.labels[crossplane.io/claim-name]
+          toFieldPath: "spec.forProvider.manifest.metadata.name"
+          transforms:
+            - type: string
+              string:
+                fmt: "dummy-cfgmap-psqldb-1-%s"
+
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.labels[crossplane.io/claim-namespace]
+          toFieldPath: "spec.forProvider.manifest.metadata.namespace"
+    - name: dummy-resource-cfgmap2
+      base:
+        apiVersion: kubernetes.crossplane.io/v1alpha1
+        kind: Object
+        spec:
+          forProvider:
+            manifest:
+              apiVersion: v1
+              kind: ConfigMap
+              metadata:
+                namespace: patch-me
+          providerConfigRef:
+            name: kubernetes-provider-config
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.labels[crossplane.io/claim-name]
+          toFieldPath: "spec.forProvider.manifest.metadata.name"
+          transforms:
+            - type: string
+              string:
+                fmt: "dummy-cfgmap-psqldb-2-%s"
+
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.labels[crossplane.io/claim-namespace]
+          toFieldPath: "spec.forProvider.manifest.metadata.namespace"
