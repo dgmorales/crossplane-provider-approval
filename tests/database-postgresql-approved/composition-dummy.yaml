@@ -1,0 +1,58 @@
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: stone-postgres-paas-dummy-approved
+  labels:
+    crossplane.io/xrd: xapostgresqlservices.approved.database.buy4.io
+    provider: dummy
+    environment: nonprod
+spec:
+  writeConnectionSecretsToNamespace: crossplane-system
+  compositeTypeRef:
+    apiVersion: approved.database.buy4.io/v1alpha1
+    kind: XAPostgreSQLService
+  resources:
+    - name: dummy-resource-cfgmap1
+      base:
+        apiVersion: kubernetes.crossplane.io/v1alpha1
+        kind: Object
+        spec:
+          forProvider:
+            manifest:
+              apiVersion: v1
+              kind: ConfigMap
+              metadata:
+                namespace: default
+          providerConfigRef:
+            name: kubernetes-provider-config
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: "spec.forProvider.manifest.metadata.name"
+          transforms:
+            - type: string
+              string:
+                fmt: "dummy-cfgmap-psqldb-1-%s"
+
+    - name: dummy-resource-cfgmap2
+      base:
+        apiVersion: kubernetes.crossplane.io/v1alpha1
+        kind: Object
+        spec:
+          forProvider:
+            manifest:
+              apiVersion: v1
+              kind: ConfigMap
+              metadata:
+                namespace: default
+          providerConfigRef:
+            name: kubernetes-provider-config
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: "spec.forProvider.manifest.metadata.name"
+          transforms:
+            - type: string
+              string:
+                fmt: "dummy-cfgmap-psqldb-2-%s"

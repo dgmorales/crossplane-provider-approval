@@ -144,6 +144,8 @@ spec:
                     type: array
                   id:
                     type: integer
+                  signoff:
+                    type: string
                   status:
                     description: ApprovalStatus is a string enum for mock approval
                       supported approval status values

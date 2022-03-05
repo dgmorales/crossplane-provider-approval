@@ -13,6 +13,11 @@ SA=$(kubectl -n crossplane-system get sa -o name | grep provider-kubernetes | se
 kubectl create clusterrolebinding provider-kubernetes-admin-binding --clusterrole cluster-admin --serviceaccount="${SA}"
 kubectl apply -f provider-kubernetes-config.yaml
 
+# add this to cluster-admin clusterrolebinding
+# - kind: ServiceAccount
+#   name: crossplane
+#   namespace: crossplane-system
+
 echo Sleeping ...
 sleep 2
 

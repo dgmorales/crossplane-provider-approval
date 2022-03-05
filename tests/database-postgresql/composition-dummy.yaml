@@ -36,53 +36,45 @@ spec:
           fromFieldPath: metadata.labels[crossplane.io/claim-namespace]
           toFieldPath: "metadata.namespace"
 
-    - name: dummy-resource-cfgmap1
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.status
+          toFieldPath: status.approvalStatus
+
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.url
+          toFieldPath: status.approvalUrl
+
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.signoff
+          toFieldPath: status.approvalSignoff
+
+    - name: approved-postgresqlservice
       base:
-        apiVersion: kubernetes.crossplane.io/v1alpha1
-        kind: Object
+        apiVersion: approved.database.buy4.io/v1alpha1
+        kind: XAPostgreSQLService
+        metadata:
+          name: patch-me
         spec:
-          forProvider:
-            manifest:
-              apiVersion: v1
-              kind: ConfigMap
-              metadata:
-                namespace: patch-me
-          providerConfigRef:
-            name: kubernetes-provider-config
+          region: patch-me
       patches:
         - type: FromCompositeFieldPath
           fromFieldPath: metadata.labels[crossplane.io/claim-name]
-          toFieldPath: "spec.forProvider.manifest.metadata.name"
+          toFieldPath: "metadata.name"
           transforms:
             - type: string
               string:
-                fmt: "dummy-cfgmap-psqldb-1-%s"
+                fmt: "approved-%s"
 
         - type: FromCompositeFieldPath
           fromFieldPath: metadata.labels[crossplane.io/claim-namespace]
-          toFieldPath: "spec.forProvider.manifest.metadata.namespace"
-    - name: dummy-resource-cfgmap2
-      base:
-        apiVersion: kubernetes.crossplane.io/v1alpha1
-        kind: Object
-        spec:
-          forProvider:
-            manifest:
-              apiVersion: v1
-              kind: ConfigMap
-              metadata:
-                namespace: patch-me
-          providerConfigRef:
-            name: kubernetes-provider-config
-      patches:
-        - type: FromCompositeFieldPath
-          fromFieldPath: metadata.labels[crossplane.io/claim-name]
-          toFieldPath: "spec.forProvider.manifest.metadata.name"
-          transforms:
-            - type: string
-              string:
-                fmt: "dummy-cfgmap-psqldb-2-%s"
+          toFieldPath: "metadata.namespace"
 
         - type: FromCompositeFieldPath
-          fromFieldPath: metadata.labels[crossplane.io/claim-namespace]
-          toFieldPath: "spec.forProvider.manifest.metadata.namespace"
+          fromFieldPath: status.approvalSignoff
+          toFieldPath: spec.parameters.approvalSignoff
+
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.region
+          toFieldPath: spec.parameters.region
+
+

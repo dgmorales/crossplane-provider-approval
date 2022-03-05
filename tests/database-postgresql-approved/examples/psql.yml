@@ -1,0 +1,13 @@
+apiVersion: approved.database.buy4.io/v1alpha1
+kind: XAPostgreSQLService
+metadata:
+  name: pgsql-approval-stnetest-approved
+spec:
+  compositionSelector:
+    matchLabels:
+      provider: dummy
+  parameters:
+    approvalSignoff: blah
+    region: us-east
+    networkLink: projects/stone-network-nonprod/global/networks/stone-shared-vpc-nonprod
+    version: 13

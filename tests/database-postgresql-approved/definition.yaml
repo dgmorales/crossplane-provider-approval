@@ -1,22 +1,12 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: CompositeResourceDefinition
 metadata:
-  name: xpostgresqlservices.database.buy4.io
+  name: xapostgresqlservices.approved.database.buy4.io
 spec:
-  group: database.buy4.io
+  group: approved.database.buy4.io
   names:
-    kind: XPostgreSQLService
-    plural: xpostgresqlservices
-  claimNames:
-    kind: PostgreSQLService
-    plural: postgresqlservices
-    shortNames:
-      - pgsql
-      - stnepgsql
-    categories:
-      - all
-      - stne
-      - database
+    kind: XAPostgreSQLService
+    plural: xapostgresqlservices
   connectionSecretKeys:
     - username
     - password
@@ -36,6 +26,9 @@ spec:
               parameters:
                 type: object
                 properties:
+                  approvalSignoff:
+                    description: Approval "sign off", a string generated only for approved resources
+                    type: string
                   tier:
                     description: "tier of the database instance"
                     type: string
@@ -132,6 +125,7 @@ spec:
                       - enabled
                       - disabled
                 required:
+                  - approvalSignoff
                   - region
             required:
               - parameters
@@ -140,15 +134,6 @@ spec:
             properties:
               masterName:
                 description: Master instance name to be used by replicas
-                type: string
-              approvalSignoff:
-                description: Approval "sign off", a string generated only for approved resources
-                type: string
-              approvalUrl:
-                description: URL for the approval request created for this resource
-                type: string
-              approvalStatus:
-                description: Approval status
                 type: string
     additionalPrinterColumns:
       - name: Region

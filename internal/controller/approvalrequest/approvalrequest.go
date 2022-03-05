@@ -139,19 +139,23 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	// These fmt statements should be removed in the real implementation.
 	fmt.Printf("Observing: %+v", cr)
 
-	if cr.Status.AtProvider.ID == nil {
-		return managed.ExternalObservation{ResourceExists: false}, nil
-	}
+	// if cr.Status.AtProvider.ID == nil {
+	// 	return managed.ExternalObservation{ResourceExists: false}, nil
+	// }
 
-	ar, err := c.service.Get(*cr.Status.AtProvider.ID)
-	if err != nil {
-		return managed.ExternalObservation{ResourceExists: true}, errors.Wrapf(err, "error getting approval request id %d details", *&cr.Status.AtProvider.ID)
-	}
+	cr.Status.AtProvider.Status = v1alpha1.ApprovalStatusValues.Approved
+	cr.Status.AtProvider.Signoff = "xyz"
 
-	if ar.Status == mockclient.ApprovalStatusValues.Approved {
-		cr.SetConditions(xpv1.Available())
-	}
+	// ar, err := c.service.Get(*cr.Status.AtProvider.ID)
+	// if err != nil {
+	// 	return managed.ExternalObservation{ResourceExists: true}, errors.Wrapf(err, "error getting approval request id %d details", *&cr.Status.AtProvider.ID)
+	// }
 
+	cr.SetConditions(xpv1.Available())
+
+	// if ar.Status == mockclient.ApprovalStatusValues.Approved {
+	// 	cr.SetConditions(xpv1.Available())
+	// }
 
 	return managed.ExternalObservation{
 		// Return false when the external resource does not exist. This lets
