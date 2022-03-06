@@ -6,3 +6,12 @@ spec:
   forProvider:
     requester: someone@someemail.com
     subject: postgresqlservice.database.buy4.io/default/pgsql-approval-stnetest
+---
+apiVersion: mock.approval.platform.buy4.io/v1alpha1
+kind: ApprovalRequest
+metadata:
+  name: approval-request-example2
+spec:
+  forProvider:
+    requester: someone@someemail.com
+    subject: postgresqlservice.database.buy4.io/default/pgsql-approval-stnetest2

@@ -42,6 +42,7 @@ type ApprovalRequest struct {
 	Id        int                      `json:"id,omitempty"`
 	Requester string                   `json:"requester"`
 	Subject   string                   `json:"subject"`
+	Archived  bool                     `json:"archived"`
 	Status    ApprovalStatus           `json:"status,omitempty"`
 	Decisions []ApprovalDecisionRecord `json:"decisions,omitempty"`
 }
@@ -51,19 +52,20 @@ type Client struct {
 }
 
 func (c *Client) Get(id int) (*ApprovalRequest, error) {
-	var arResponse *ApprovalRequest
+	var arResponse ApprovalRequest
 
 	resp, err := http.Get(fmt.Sprintf("%s/approval_requests/%d", c.Hostname, id))
 	if err != nil {
 		return nil, fmt.Errorf("error getting approval request id '%d': %w", id, err)
 	}
+	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(arResponse)
+	err = json.NewDecoder(resp.Body).Decode(&arResponse)
 	if err != nil {
 		return nil, fmt.Errorf("error decoding approval request id '%d': %w", id, err)
 	}
 
-	return arResponse, nil
+	return &arResponse, nil
 
 }
 
@@ -80,6 +82,7 @@ func (c *Client) Create(requester string, subject string) (*ApprovalRequest, err
 	if err != nil {
 		return nil, fmt.Errorf("error posting approval request: %w", err)
 	}
+	defer resp.Body.Close()
 
 	// repurpose ar to receive the response
 	err = json.NewDecoder(resp.Body).Decode(&ar)
@@ -89,4 +92,28 @@ func (c *Client) Create(requester string, subject string) (*ApprovalRequest, err
 
 	return &ar, nil
 
+}
+
+func (c *Client) Archive(id int) (*ApprovalRequest, error) {
+	var arResponse ApprovalRequest
+
+	client := &http.Client{}
+
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/approval_requests/%d", c.Hostname, id), nil)
+	if err != nil {
+		return nil, fmt.Errorf("error creating http request for archiving approval request id '%d': %w", id, err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error archiving approval request id '%d': %w", id, err)
+	}
+	defer resp.Body.Close()
+
+	err = json.NewDecoder(resp.Body).Decode(&arResponse)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding approval request id '%d': %w", id, err)
+	}
+
+	return &arResponse, nil
 }

@@ -139,23 +139,27 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 	// These fmt statements should be removed in the real implementation.
 	fmt.Printf("Observing: %+v", cr)
 
-	// if cr.Status.AtProvider.ID == nil {
-	// 	return managed.ExternalObservation{ResourceExists: false}, nil
-	// }
+	if cr.Status.AtProvider.ID == nil {
+		return managed.ExternalObservation{ResourceExists: false}, nil
+	}
 
-	cr.Status.AtProvider.Status = v1alpha1.ApprovalStatusValues.Approved
-	cr.Status.AtProvider.Signoff = "xyz"
+	ar, err := c.service.Get(*cr.Status.AtProvider.ID)
+	if err != nil {
+		return managed.ExternalObservation{ResourceExists: true}, errors.Wrapf(err, "error getting approval request id %d details", *&cr.Status.AtProvider.ID)
+	}
 
-	// ar, err := c.service.Get(*cr.Status.AtProvider.ID)
-	// if err != nil {
-	// 	return managed.ExternalObservation{ResourceExists: true}, errors.Wrapf(err, "error getting approval request id %d details", *&cr.Status.AtProvider.ID)
-	// }
+	if ar.Archived {
+		return managed.ExternalObservation{ResourceExists: false}, nil
+	}
 
-	cr.SetConditions(xpv1.Available())
+	cr.Status.AtProvider.Status = v1alpha1.ApprovalStatus(ar.Status)
 
-	// if ar.Status == mockclient.ApprovalStatusValues.Approved {
-	// 	cr.SetConditions(xpv1.Available())
-	// }
+	if ar.Status == mockclient.ApprovalStatusValues.Approved {
+		cr.Status.AtProvider.Signoff = "yeah go for it"
+		cr.SetConditions(xpv1.Available())
+	}
+
+	// cr.Status.AtProvider.Signoff = "xyz"
 
 	return managed.ExternalObservation{
 		// Return false when the external resource does not exist. This lets
@@ -181,6 +185,16 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 	}
 
 	fmt.Printf("Creating: %+v", cr)
+	// get info from
+	ar, err := c.service.Create(cr.Spec.ForProvider.Requester, cr.Spec.ForProvider.Subject)
+	if err != nil {
+		return managed.ExternalCreation{}, errors.New("failed to create approval request")
+	}
+
+	cr.Status.AtProvider.ID = &ar.Id
+	cr.Status.AtProvider.Status = v1alpha1.ApprovalStatus(ar.Status)
+
+	cr.SetConditions(xpv1.Creating())
 
 	return managed.ExternalCreation{
 		// Optionally return any details that may be required to connect to the
@@ -195,7 +209,7 @@ func (c *external) Update(ctx context.Context, mg resource.Managed) (managed.Ext
 		return managed.ExternalUpdate{}, errors.New(errNotApprovalRequest)
 	}
 
-	fmt.Printf("Updating: %+v", cr)
+	fmt.Printf("Updating (THIS SHOULD NOT BE CALLED): %+v", cr)
 
 	return managed.ExternalUpdate{
 		// Optionally return any details that may be required to connect to the
@@ -211,6 +225,12 @@ func (c *external) Delete(ctx context.Context, mg resource.Managed) error {
 	}
 
 	fmt.Printf("Deleting: %+v", cr)
+	_, err := c.service.Archive(*cr.Status.AtProvider.ID)
+	if err != nil {
+		return errors.Wrapf(err, "error deleting (archiving) approval request id %d", *&cr.Status.AtProvider.ID)
+	}
+
+	cr.SetConditions(xpv1.Deleting())
 
 	return nil
 }
