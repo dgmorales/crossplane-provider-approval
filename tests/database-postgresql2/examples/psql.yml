@@ -1,0 +1,12 @@
+apiVersion: database.buy4.io/v1alpha1
+kind: PostgreSQLService
+metadata:
+  name: pgsql-approval-stnetest-single-xrd
+spec:
+  compositionSelector:
+    matchLabels:
+      provider: dummy
+  parameters:
+    region: us-east
+    networkLink: projects/stone-network-nonprod/global/networks/stone-shared-vpc-nonprod
+    version: 13

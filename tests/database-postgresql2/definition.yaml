@@ -1,0 +1,159 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xpostgresqlservices.database.buy4.io
+spec:
+  group: database.buy4.io
+  names:
+    kind: XPostgreSQLService
+    plural: xpostgresqlservices
+  claimNames:
+    kind: PostgreSQLService
+    plural: postgresqlservices
+    shortNames:
+      - pgsql
+      - stnepgsql
+    categories:
+      - all
+      - stne
+      - database
+  connectionSecretKeys:
+    - username
+    - password
+    - endpoint
+    - port
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              parameters:
+                type: object
+                properties:
+                  tier:
+                    description: "tier of the database instance"
+                    type: string
+                    enum:
+                      - small
+                      - medium
+                      - large
+                  version:
+                    description: 'version: Versions supported by the DBA team.'
+                    type: number
+                    enum:
+                      - 9.6
+                      - 10
+                      - 11
+                      - 12
+                      - 13
+                  storageGB:
+                    description: 'storageGB: The size of data disk, in GB. The data disk size minimum is 10GB.'
+                    format: int64
+                    type: integer
+                  networkLink:
+                    description: 'networkLink: The resource link for the VPC network from which the instance is accessible for private IP.'
+                    type: string
+                  networkLinkRef:
+                    description: 'networkLinkRef sets the networkLink field by resolving the resource link of the referenced Crossplane Network managed resource.'
+                    type: object
+                    properties:
+                      name:
+                        description: 'Name of the referenced object.'
+                        type: string
+                    required:
+                      - name
+                  networkLinkSelector:
+                    description: networkLinkSelector selects a networkLinkRef.
+                    type: object
+                    properties:
+                      matchControllerRef:
+                        description: MatchControllerRef ensures an object with the same controller reference as the selecting object is selected.
+                        type: boolean
+                      matchLabels:
+                        description: 'MatchLabels ensures an object with matching labels is selected.'
+                        type: object
+                        additionalProperties:
+                          type: string
+                  backup:
+                    description: Backup configuration.
+                    type: object
+                    properties:
+                      startTime:
+                        description: Start time for the daily backup configuration in UTC timezone in the 24 hour format - HH:MM.
+                        type: string
+                      enabled:
+                        description: Whether backup is enabled or not.
+                        type: boolean
+                      pointInTimeRecovery:
+                        description: Whether point in time recovery is enabled or not.
+                        type: boolean
+                    required:
+                      - enabled
+                  maintenance:
+                    description: Specifies when a Cloud SQL instance should preferably be restarted for system maintenance purposes.
+                    type: object
+                    properties:
+                      day:
+                        description: Day of week.
+                        type: string
+                        enum:
+                          - monday
+                          - tuesday
+                          - wednesday
+                          - thursday
+                          - friday
+                          - saturday
+                          - sunday
+                      hour:
+                        description: Hour of day - 0 to 23.
+                        type: integer
+                  region:
+                    description: 'Region: us-central or us-east'
+                    type: string
+                    enum:
+                      - us-central
+                      - us-east
+                  availability:
+                    description: Whether the location type is zonal or regional.
+                    type: string
+                    enum:
+                      - zonal
+                      - regional
+                  publicIp:
+                    description: Whether the instance should be assigned an IP address or not.
+                    type: string
+                    enum:
+                      - enabled
+                      - disabled
+                required:
+                  - region
+            required:
+              - parameters
+          status:
+            type: object
+            properties:
+              masterName:
+                description: Master instance name to be used by replicas
+                type: string
+              approvalSignoff:
+                description: Approval "sign off", a string generated only for approved resources
+                type: string
+    additionalPrinterColumns:
+      - name: Region
+        type: string
+        description: The resource region
+        jsonPath: .spec.parameters.region
+      - name: Version
+        type: string
+        description: The database version
+        jsonPath: .spec.parameters.version
+      - name: Tier
+        type: string
+        description: The database tier
+        jsonPath: .spec.parameters.tier
