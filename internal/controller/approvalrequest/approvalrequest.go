@@ -19,6 +19,7 @@ package approvalrequest
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -152,14 +153,12 @@ func (c *external) Observe(ctx context.Context, mg resource.Managed) (managed.Ex
 		return managed.ExternalObservation{ResourceExists: false}, nil
 	}
 
-	cr.Status.AtProvider.Status = v1alpha1.ApprovalStatus(ar.Status)
-
-	if ar.Status == mockclient.ApprovalStatusValues.Approved {
-		cr.Status.AtProvider.Signoff = "yeah go for it"
+	if cr.Status.AtProvider.Status == v1alpha1.ApprovalStatusValues.Pending && ar.Status == mockclient.ApprovalStatusValues.Approved {
+		cr.Status.AtProvider.Signoff = fmt.Sprintf("%s - approved", time.Now().Format("January 2, 2006 at 3:04:05PM MST"))
 		cr.SetConditions(xpv1.Available())
 	}
 
-	// cr.Status.AtProvider.Signoff = "xyz"
+	cr.Status.AtProvider.Status = v1alpha1.ApprovalStatus(ar.Status)
 
 	return managed.ExternalObservation{
 		// Return false when the external resource does not exist. This lets
@@ -192,6 +191,7 @@ func (c *external) Create(ctx context.Context, mg resource.Managed) (managed.Ext
 	}
 
 	cr.Status.AtProvider.ID = &ar.Id
+	cr.Status.AtProvider.Url = fmt.Sprintf("%s/approval_requests/%d", c.service.Hostname, ar.Id)
 	cr.Status.AtProvider.Status = v1alpha1.ApprovalStatus(ar.Status)
 
 	cr.SetConditions(xpv1.Creating())

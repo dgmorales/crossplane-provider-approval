@@ -27,12 +27,16 @@ spec:
     - jsonPath: .status.conditions[?(@.type=='Synced')].status
       name: SYNCED
       type: string
-    - jsonPath: .metadata.annotations.crossplane\.io/external-name
-      name: EXTERNAL-NAME
-      type: string
     - jsonPath: .metadata.creationTimestamp
       name: AGE
       type: date
+    - jsonPath: .status.atProvider.status
+      name: APPROVAL-STATUS
+      type: string
+    - jsonPath: .status.atProvider.url
+      name: URL
+      type: string
+      priority: 1
     name: v1alpha1
     schema:
       openAPIV3Schema:
@@ -149,6 +153,8 @@ spec:
                   status:
                     description: ApprovalStatus is a string enum for mock approval
                       supported approval status values
+                    type: string
+                  url:
                     type: string
                 type: object
               conditions:

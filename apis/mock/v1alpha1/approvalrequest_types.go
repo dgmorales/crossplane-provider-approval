@@ -73,6 +73,7 @@ type ApprovalRequestObservation struct {
 	Status    ApprovalStatus           `json:"status,omitempty"`
 	Decisions []ApprovalDecisionRecord `json:"decisions,omitempty"`
 	Signoff   string                   `json:"signoff,omitempty"`
+	Url       string                   `json:"url,omitempty"`
 }
 
 // A ApprovalRequestSpec defines the desired state of a ApprovalRequest.
@@ -94,6 +95,8 @@ type ApprovalRequestStatus struct {
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Synced')].status"
 // +kubebuilder:printcolumn:name="EXTERNAL-NAME",type="string",JSONPath=".metadata.annotations.crossplane\\.io/external-name"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
+// +kubebuilder:printcolumn:name="APPROVAL-STATUS",type="string",JSONPath=".status.atProvider.status"
+// +kubebuilder:printcolumn:name="URL",type="string",JSONPath=".status.atProvider.url"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,approval}
 type ApprovalRequest struct {
